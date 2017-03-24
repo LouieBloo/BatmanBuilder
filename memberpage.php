@@ -6,6 +6,17 @@ if(!$user->is_logged_in()){ header('Location: login.php'); }
 //define page title
 $title = 'Members Page';
 
+ob_start();
+
+
+echo "yeah";
+$output = ob_get_contents();
+ob_end_clean();
+
+echo "luke";
+
+//echo $output . " lsaodf";
+//echo ob_end_flush();
 //include header template
 require('layout/header.php'); 
 ?>

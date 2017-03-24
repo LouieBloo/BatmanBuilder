@@ -1,4 +1,6 @@
-<?php require('includes/config.php');
+<?php 
+
+require('includes/config.php');
 
 //if logged in redirect to members page
 if( $user->is_logged_in() ){ header('Location: memberpage.php'); }
