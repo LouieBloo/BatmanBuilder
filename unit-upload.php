@@ -9,9 +9,6 @@ $title = 'Unit Uploader';
 
 $figureName = $_POST["figureName"];
 
-
-
-
 $factionName = $_POST["factionName"];
 $traitName = $_POST["traitName"];
 $rankName = $_POST["rankName"];
@@ -28,17 +25,100 @@ if(!empty($figureName))
 
 	if($query->rowCount() <= 0)
 	{
-		$query = $db->prepare("INSERT INTO Figures(Name) VALUES(:name)");
-		$query->execute(array(':name' => $figureName));	
-		
-		if($query->rowCount() >= 1)
+		$figureAlias = $_POST['figureAlias'];
+		$repCost = $_POST['reputationCost'];
+		$fundingCost = $_POST['fundingCost'];
+		$willpower = $_POST['willpower'];
+		$strength = $_POST['strength'];
+		$movement = $_POST['movement'];
+		$attack = $_POST['attack'];
+		$defense = $_POST['defense'];
+		$endurance = $_POST['endurance'];
+		$special = $_POST['special'];
+		$specialTraits = $_POST['specialTraits'];
+
+		if(empty($figureAlias)){$errorMessages[] = "Empty alias";}
+		if(empty($repCost)){$errorMessages[] = "Empty repCost";}
+		if(empty($fundingCost)){$errorMessages[] = "Empty fundingCost";}
+		if(empty($willpower)){$errorMessages[] = "Empty willpower";}
+		if(empty($strength)){$errorMessages[] = "Empty strength";}
+		if(empty($movement)){$errorMessages[] = "Empty movement";}
+		if(empty($attack)){$errorMessages[] = "Empty attack";}
+		if(empty($defense)){$errorMessages[] = "Empty defense";}
+		if(empty($endurance)){$errorMessages[] = "Empty endurance";}
+		if(empty($special)){$errorMessages[] = "Empty special";}
+		if(empty($specialTraits)){$errorMessages[] = "Empty specialTraits";}
+		if(empty($_POST['factions'])){$errorMessages[] = "Empty faction!";}
+
+		if(empty($errorMessages))
 		{
-			$successMessage = "Figure Added Succesfully";
+			$query = $db->prepare("INSERT INTO Figures(Name,Alias,ReputationCost,FundingCost,SpecialTraits,Willpower,Strength,Movement,Attack,Defense,Endurance,Special) VALUES(:name,:alias,:rep,:fund,:traits,:will,:str,:move,:att,:def,:en,:spec)");
+			$query->execute(array(
+			 	':name' => $figureName,
+			 	':alias' => $figureAlias,
+			 	':rep' => $repCost,
+			 	':fund' => $fundingCost,
+			 	':traits' => $specialTraits,
+			 	':will' => $willpower,
+			 	':str' => $strength,
+			 	':move' => $movement,
+			 	':att' => $attack,
+			 	':def' => $defense,
+			 	':en' => $endurance,
+			 	':spec' => $special,
+			));	
+			
+			if($query->rowCount() >= 1)
+			{
+				$figureRow = $db->lastInsertId();
+
+				//add faction
+				foreach($_POST["factions"] as $faction)
+				{
+					$query = $db->prepare("INSERT INTO Figure_Factions(Figure,Faction) VALUES(:fig,:fac)");
+					$query->execute(array(':fig' => $figureRow,':fac' => $faction));
+				}
+				foreach($_POST["ranks"] as $rank)
+				{
+					$query = $db->prepare("INSERT INTO Figure_Ranks(Figure,Rank) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $rank));
+				}
+				foreach($_POST["traits"] as $trait)
+				{
+					$query = $db->prepare("INSERT INTO Figure_Traits(Figure,Trait) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $trait));
+				}
+				foreach($_POST["weapons"] as $trait)
+				{
+					$query = $db->prepare("INSERT INTO Figure_Weapons(Figure,Weapon) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $trait));
+				}
+				foreach($_POST["hatesFactions"] as $trait)
+				{
+					$query = $db->prepare("INSERT INTO Figure_HatesFaction(FigureID,FactionID) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $trait));
+				}
+				foreach($_POST["hatesFigures"] as $trait)
+				{
+					$query = $db->prepare("INSERT INTO Figure_HatesFigure(Hater,Hated) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $trait));
+				}
+				foreach($_POST["affinitys"] as $trait)
+				{
+					$query = $db->prepare("INSERT INTO Figure_Affinitys(LoverID,LovedID) VALUES(:x,:y)");
+					$query->execute(array(':x' => $figureRow,':y' => $trait));
+				}
+
+				$successMessage = "Figure Added Succesfully";
+
+			}
+			else
+			{
+				$errorMessages[] = "Figure not added. Idk why";
+			}
 		}
-		else
-		{
-			$errorMessages[] = "Figure not added. Idk why";
-		}
+
+			
 		
 	}
 	else
@@ -247,7 +327,7 @@ if(!empty($successMessage))
 				</div>
 				<div class="form-group col-md-3">
 					<label>Alias</label>
-					<input type="text" name="figureAlias" id="figureAlias" class="form-control input-lg" placeholder="Alias" value="" tabindex="1">
+					<input required type="text" name="figureAlias" id="figureAlias" class="form-control input-lg" placeholder="Alias" value="" tabindex="1">
 				</div>
 				<div class="form-group col-md-3">
 					<label>Reputation Cost</label>
@@ -283,12 +363,12 @@ if(!empty($successMessage))
 				</div>
 				<div class="form-group col-md-3">
 					<label>Special</label>
-					<input type="number" required min="0" step="1" name="special" id="specialv" class="form-control input-lg" placeholder="Special" value="" tabindex="1">
+					<input type="number" required min="0" step="1" name="special" id="special" class="form-control input-lg" placeholder="Special" value="" tabindex="1">
 				</div>
 
 				<div class="form-group col-md-12">
-					<label>Special</label>
-					<textarea  type="text" name="special" id="special" class="form-control input-lg" placeholder="Special" value="" tabindex="1"></textarea>
+					<label>Special Traits</label>
+					<textarea required type="text" name="specialTraits" id="specialTraits" class="form-control input-lg" placeholder="Special Triats" value="" tabindex="1"></textarea>
 				</div>
 
 				<div class="form-group col-md-3">
@@ -400,16 +480,307 @@ if(!empty($successMessage))
 
 		</div>
 
+		<!-- show figure stats-->
 		<div class="col-md-6">
 			<div class="row">
 				<div class="col-md-12">
 					<h2>Figures</h2>
 					<?php
-					
-					foreach($db->query('SELECT * FROM Figures') as $row) {?>
-						<p><?php echo $row['Name'];?></p>
+
+					foreach($db->query('SELECT * FROM Figures') as $row) {
+
+						$figurePrimaryKey = $row['FigureID'];?>
+
+						<div class="row">
+							<div class="col-md-6">
+
+								<div class="row">
+									<div class="col-md-12"><label>Name: </label><?php echo " " . $row['Name'];?></div>
+									<div class="col-md-12"><label>Alias: </label><?php echo " " . $row['Alias'];?></div>
+
+									<div class="col-md-12">
+										<label>Rank:</label>
+											<?php
+											$query = $db->prepare('SELECT * FROM Figure_Ranks INNER JOIN Ranks ON Figure_Ranks.Rank=Ranks.RankID WHERE Figure_Ranks.Figure=:figureID');
+											$query->execute(array(':figureID' => $figurePrimaryKey));
+											$result = $query->fetchAll(PDO::FETCH_ASSOC);
+											if(empty($result))
+											{
+												echo "none";
+											}else
+											{
+												foreach($result as $rank)
+												{
+													?>
+													<?php echo $rank["Name"] . " ";?>
+													<?php
+												}
+											}
+											?>
+									</div>
+
+									<div class="col-md-12">
+										<label>Faction:</label>
+											<?php
+											$query = $db->prepare('SELECT * FROM Figure_Factions INNER JOIN Faction ON Figure_Factions.Faction=Faction.FactionID WHERE Figure_Factions.Figure=:figureID');
+											$query->execute(array(':figureID' => $figurePrimaryKey));
+											$result = $query->fetchAll(PDO::FETCH_ASSOC);
+											if(empty($result))
+											{
+												echo "none";
+											}else
+											{
+												foreach($result as $faction)
+												{
+													?>
+													<?php echo $faction["Name"] . " ";?>
+													<?php
+												}
+											}
+											?>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="row">
+									<div class="col-md-2"><label>Strength</label><p class="centered"><?php echo $row['Strength'];?></p></div>
+									<div class="col-md-2"><label>Movement</label><p class="centered"><?php echo $row['Movement'];?></p></div>
+									<div class="col-md-2"><label>Attack</label><p class="centered"><?php echo $row['Attack'];?></p></div>
+									<div class="col-md-2"><label>Defense</label><p class="centered"><?php echo $row['Defense'];?></p></div>
+									<div class="col-md-2"><label>Endurance</label><p class="centered"><?php echo $row['Endurance'];?></p></div>
+									<div class="col-md-2"><label>Special</label><p class="centered"><?php echo $row['Special'];?></p></div>
+								</div>
+							
+							</div>
+						</div>
+
+						<!--figure weapon-->
+						<div class="row">
+							<div class="col-md-12">
+							<p><b>Weapons:</b></p>
+							<?php
+								$query = $db->prepare('SELECT * FROM Figure_Weapons INNER JOIN Weapons ON Figure_Weapons.Weapon=Weapons.WeaponID WHERE Figure_Weapons.Figure=:figureID');
+								$query->execute(array(':figureID' => $figurePrimaryKey));
+								$result = $query->fetchAll(PDO::FETCH_ASSOC);
+								if(empty($result))
+								{
+									echo "none";
+								}else
+								{
+									foreach($result as $weapon)
+									{?>
+										<div class="row">
+											<div class="col-md-3">
+												<label>Name:</label>
+												<?php echo $weapon["Name"] . " ";?>	
+											</div>
+											<div class="col-md-1">
+												<label>Damage</label>
+												<p class="centered"><?php echo $weapon["Damage"] . " ";?></p>
+											</div>
+											<div class="col-md-2">
+												<label>Rate Of Fire</label>
+												<p class="centered"><?php echo $weapon["RateOfFire"] . " ";?></p>
+											</div>
+											<div class="col-md-1">
+												<label>Ammo</label>
+												<p class="centered"><?php echo $weapon["Ammo"] . " ";?>	</p>
+											</div>
+											<div class="col-md-3">
+												<p class="centered"><b>Special</b></p>
+												<?php
+													$query = $db->prepare(
+														'SELECT *
+														FROM `WeaponTraits`
+														INNER JOIN Weapon_Traits ON WeaponTraits.WeaponTraitID=Weapon_Traits.WeaponTraitID
+														INNER JOIN Figure_Weapons ON Weapon_Traits.WeaponID=Figure_Weapons.Weapon
+														WHERE Figure_Weapons.Figure=:figureID AND Figure_Weapons.Weapon=:weaponID'
+													);
+													$query->execute(array(':figureID' => $figurePrimaryKey, ':weaponID' => $weapon["Weapon"]));
+													$weaponTraits = $query->fetchAll(PDO::FETCH_ASSOC);
+													if(empty($weaponTraits))
+													{
+														echo "none";
+													}else
+													{
+														foreach($weaponTraits as $weaponTr)
+														{?>
+															<p class="centered"><?php echo $weaponTr["Name"] . " ";?></p>
+														<?php
+														}
+													}
+												?>
+											</div>
+										</div>
+			
+									<?php
+									}
+								}
+								?>
+							</div>
+						</div>
+						<!--end figure weapon-->
+
+						<br>
+
+						<div class="row">
+							<div class="col-md-12"><label>Special Traits:</label><div style="max-width:500px; padding-left:50px;" ><?php echo $row['SpecialTraits'];?></div></div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6"><label>Reputation Cost:</label><?php echo " " . $row['ReputationCost'];?></div>
+							<div class="col-md-6"><label>Funding Cost:</label><?php echo " $" . $row['FundingCost'];?></div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-12"><label>Willpower:</label><?php echo " " . $row['Willpower'];?></div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<p><b>Personal Traits:</b></p>
+								
+								<?php
+									$query = $db->prepare(
+										'SELECT *
+										FROM `Traits`
+										INNER JOIN Figure_Traits ON Figure_Traits.Trait=Traits.TraitID
+										WHERE Figure_Traits.Figure=:figureID'
+									);
+									$query->execute(array(':figureID' => $figurePrimaryKey));
+									$personalTraits = $query->fetchAll(PDO::FETCH_ASSOC);
+									if(empty($personalTraits))
+									{
+										echo "none";
+									}else
+									{
+										foreach($personalTraits as $personalTr)
+										{?>
+												<div class="col-md-6"><?php echo $personalTr["Name"] . " ";?>
+												</div>
+										<?php
+										}
+
+									}
+
+
+								?>
+							</div>
+						</div>
+
+						<br>
+
+						<div class="row">
+							<div class="col-md-12">
+								<h4>Relationships</h4>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<p><b>Hates Figures:</b></p>
+								
+								<?php
+									$query = $db->prepare(
+										'SELECT *
+										FROM `Figures`
+										INNER JOIN Figure_HatesFigure ON Figure_HatesFigure.Hated=Figures.FigureID
+										WHERE
+										Figure_HatesFigure.Hater=:figureID'
+									);
+									$query->execute(array(':figureID' => $figurePrimaryKey));
+									$hateFigure = $query->fetchAll(PDO::FETCH_ASSOC);
+									if(empty($hateFigure))
+									{
+										echo "none";
+									}else
+									{
+										foreach($hateFigure as $hateFig)
+										{?>
+												<div class="col-md-3"><?php echo $hateFig["Name"] . " ";?>
+												</div>
+										<?php
+										}
+
+									}
+
+
+								?>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<p><b>Hates Faction:</b></p>
+								
+								<?php
+									$query = $db->prepare(
+										'SELECT *
+										FROM `Faction`
+										INNER JOIN Figure_HatesFaction ON Figure_HatesFaction.FactionID=Faction.FactionID
+										WHERE
+										Figure_HatesFaction.FigureID=:figureID'
+									);
+									$query->execute(array(':figureID' => $figurePrimaryKey));
+									$hateFaction = $query->fetchAll(PDO::FETCH_ASSOC);
+									if(empty($hateFaction))
+									{
+										echo "none";
+									}else
+									{
+										foreach($hateFaction as $hateFac)
+										{?>
+												<div class="col-md-3"><?php echo $hateFac["Name"] . " ";?>
+												</div>
+										<?php
+										}
+
+									}
+
+
+								?>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col-md-6">
+								<p><b>Affinitys:</b></p>
+								
+								<?php
+									$query = $db->prepare(
+										'SELECT *
+										FROM `Figures`
+										INNER JOIN Figure_Affinitys ON Figure_Affinitys.LovedID=Figures.FigureID
+										WHERE
+										Figure_Affinitys.LoverID=:figureID'
+									);
+									$query->execute(array(':figureID' => $figurePrimaryKey));
+									$affinitys = $query->fetchAll(PDO::FETCH_ASSOC);
+									if(empty($affinitys))
+									{
+										echo "none";
+									}else
+									{
+										foreach($affinitys as $aff)
+										{?>
+												<div class="col-md-3"><?php echo $aff["Name"] . " ";?>
+												</div>
+										<?php
+										}
+
+									}
+
+
+								?>
+							</div>
+						</div>
+
+						<hr>
+
 					<?php
 					}
+					
 					?>
 
 				</div>

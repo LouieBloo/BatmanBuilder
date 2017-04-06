@@ -1,3 +1,5 @@
+
+
 .bg-danger, .bg-success {
 	padding: 0 5px;
 }
@@ -5,4 +7,18 @@
 a {
 	color: #EF1F2F;
 	text-decoration: none;
+}
+
+
+hr {
+    border: none;
+    height: 2px;
+    background-color: #cecece; /* Modern Browsers */
+}
+
+
+
+
+.centered{
+	text-align: center;
 }
